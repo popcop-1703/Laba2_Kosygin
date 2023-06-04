@@ -1,69 +1,64 @@
 #include <iostream>
+#include <fstream>
+#include <vector>
+#include <ctime>
+#include <windows.h>
+
 using namespace std;
-void Brezenhem(char** z, int x0, int y0, int x1, int y1)
-{
-    int A, B, sign;
-    A = y1 - y0;
-    B = x0 - x1;
-    if (abs(A) > abs(B)) sign = 1;
-    else sign = -1;
-    int signa, signb;
-    if (A < 0) signa = -1;
-    else signa = 1;
-    if (B < 0) signb = -1;
-    else signb = 1;
-    int f = 0;
-    z[y0][x0] = '*';
-    int x = x0, y = y0;
-    if (sign == -1)
-    {
-        do {
-            f += A * signa;
-            if (f > 0)
-            {
-                f -= B * signb;
-                y += signa;
-            }
-            x -= signb;
-            z[y][x] = '*';
-        } while (x != x1 || y != y1);
-    }
-    else
-    {
-        do {
-            f += B * signb;
-            if (f > 0) {
-                f -= A * signa;
-                x -= signb;
-            }
-            y += signa;
-            z[y][x] = '*';
-        } while (x != x1 || y != y1);
-    }
+
+typedef pair<int, int> point;
+
+int getPixelColor(int** image, int x, int y) {
+    return image[x][y];
 }
-int main()
-{
-    const int SIZE = 25; // размер поля
-    int x1, x2, y1, y2;
-    char** z;
-    z = new char* [SIZE];
-    for (int i = 0; i < SIZE; i++)
-    {
-        z[i] = new char[SIZE];
-        for (int j = 0; j < SIZE; j++)
-            z[i][j] = '-';
+
+void setPixelColor(int** image, int x, int y, int color) {
+    image[x][y] = color;
+}
+
+void fill(int** image, int x, int y, int fillColor, int borderColor) {
+    if (getPixelColor(image, x, y) == borderColor) {
+        return;
     }
-    cout << "x1 = ";     cin >> x1;
-    cout << "y1 = ";     cin >> y1;
-    cout << "x2 = ";     cin >> x2;
-    cout << "y2 = ";    cin >> y2;
-    Brezenhem(z, x1, y1, x2, y2);
-    for (int i = 0; i < SIZE; i++)
-    {
-        for (int j = 0; j < SIZE; j++)
-            cout << z[i][j];
-        cout << endl;
+    if (getPixelColor(image, x, y) == fillColor) {
+        return;
     }
-    cin.get(); cin.get();
+    setPixelColor(image, x, y, fillColor);
+    fill(image, x + 1, y, fillColor, borderColor);
+    fill(image, x - 1, y, fillColor, borderColor);
+    fill(image, x, y + 1, fillColor, borderColor);
+    fill(image, x, y - 1, fillColor, borderColor);
+}
+
+int main() {
+    int width = 10;
+    int height = 10;
+    int** image = new int* [width];
+    for (int i = 0; i < width; i++) {
+        image[i] = new int[height];
+        for (int j = 0; j < height; j++) {
+            image[i][j] = 1;
+        }
+    }
+    for (int i = 1; i < width - 1; i++) {
+        image[i][1] = 0; // Граница
+        image[i][height - 2] = 0; // Граница
+    }
+    for (int j = 1; j < height - 1; j++) {
+        image[1][j] = 0; // Граница
+        image[width - 2][j] = 0; // Граница
+    }
+
+    fill(image, 5, 5, 2, 0);
+
+    ofstream fout("output.txt");
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
+            fout << image[i][j] << " ";
+        }
+        fout << endl;
+    }
+    fout.close();
+    Sleep(10000);
     return 0;
 }
